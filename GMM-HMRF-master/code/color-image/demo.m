@@ -9,15 +9,15 @@ clear;clc;close all;
 mex BoundMirrorExpand.cpp;
 mex BoundMirrorShrink.cpp;
 
-I=imread('385028.jpg');
+I=imread('land.jpg');
 Y=double(I);
 Y(:,:,1)=gaussianBlur(Y(:,:,1),3);
 Y(:,:,2)=gaussianBlur(Y(:,:,2),3);
 Y(:,:,3)=gaussianBlur(Y(:,:,3),3);
 
 
-k=3; % k: number of regions
-g=3; % g: number of GMM components
+k=8; % k: number of regions
+g=8; % g: number of GMM components
 beta=1; % beta: unitary vs. pairwise
 EM_iter=10; % max num of iterations
 MAP_iter=10; % max num of iterations
