@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
 
 # read in the data from pixels.xlx sheet 1
 data = pd.read_excel('../Data/pixels_v2.xlsx', sheet_name=0)
@@ -85,7 +84,6 @@ for s in range(len(scenes)):
             img = plt.imread(path)
             # convert image to grayscale
             img = img[:,:,0]
-            print(img.shape)
             #find unique pixel values
             unique_pixels = np.unique(img)
             #assign integer values to each unique pixel in the image
@@ -125,3 +123,57 @@ for s in range(len(scenes)):
 df = pd.DataFrame.from_dict(kmeans_scores, orient='index')
 df.columns = ['score']
 df.to_csv('kmeans_scores.csv')
+
+
+gmm_scores = {}
+#begin gmm processing loop
+for s in range(len(scenes)):
+    scene_num = s+1
+    gmm_path = f'../GMM/result/segmentation/scene{scene_num}/'
+    gt_pixels = classes[s]
+    for image in images:
+        path = gmm_path + str(scene_num) + image
+        # read in the image
+        try:
+            img = plt.imread(path)
+            # convert image to grayscale
+            img = img[:,:,0]
+            #find unique pixel values
+            unique_pixels = np.unique(img)
+            #assign integer values to each unique pixel in the image
+            for i in range(len(unique_pixels)):
+                img[img == unique_pixels[i]] = i
+
+            correct = 0
+            #loop through gt_pixels keys
+            for key in gt_pixels.keys():
+                values = []
+                #loop through gt_pixels values
+                for value in gt_pixels[key]:
+                    #find the pixel value in the image
+                    pixel_value = img[value[0]][value[1]]
+                    #add the pixel value to the list
+                    values.append(pixel_value)
+                #find the mode of the list
+                mode = np.bincount(values).argmax() 
+
+                #calculate the correctly classified pixels for this key
+                #loop through gt_pixels values
+                for value in gt_pixels[key]:
+                    #find the pixel value in the image
+                    pixel_value = img[value[0]][value[1]]
+                    #check if the pixel value is equal to the mode
+                    if pixel_value == mode:
+                        correct += 1
+            #calculate the image score
+            score = (2*correct - n)/n
+            #add the score to the dictionary
+            gmm_scores[str(scene_num) + image] = score
+
+        except:
+            pass #if the image doesn't exist, skip it
+
+#save gmm scores to csv
+df = pd.DataFrame.from_dict(gmm_scores, orient='index')
+df.columns = ['score']
+df.to_csv('gmm_scores.csv')
